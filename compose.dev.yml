@@ -1,0 +1,35 @@
+version: "3"
+
+services:
+
+  app:
+    build:
+      context: .
+      dockerfile: ContainerfileDev
+    container_name: ${CONTAINER_APP_NAME}
+    env_file:
+      - .env.dev
+    depends_on:
+      - db
+    ports:
+      - ${APP_PORT}:${APP_PORT}
+    volumes:
+      - type: bind
+        source: .
+        target: /usr/src/app
+    command: npm run start:dev
+
+  db:
+    image: ${DATABASE_IMAGE}
+    container_name: ${CONTAINER_DB_NAME}
+    restart: always
+    env_file:
+      - .env.dev
+    environment:
+      MARIADB_USER: ${DATABASE_USER}
+      MARIADB_PASSWORD: ${DATABASE_PASSWORD}
+      MARIADB_ROOT_PASSWORD: ${DATABASE_ROOT_PASSWORD}
+      MARIADB_DATABASE: ${DATABASE_NAME}
+      MYSQL_TCP_PORT: ${DATABASE_PORT}
+    ports:
+      - ${DATABASE_PORT}:${DATABASE_PORT}
