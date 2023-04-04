@@ -1,14 +1,30 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { LoadDataService } from './init.service';
-import { Drivers } from '../entities/driver.entity';
+import { Drivers, Fees, Riders } from '../entities';
+import { getRepositoryToken } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import * as sinon from 'sinon';
 
 describe('TripService', () => {
   let service: LoadDataService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [LoadDataService],
-      imports: [Drivers],
+      providers: [
+        LoadDataService,
+        {
+          provide: getRepositoryToken(Drivers),
+          useValue: sinon.createStubInstance(Repository),
+        },
+        {
+          provide: getRepositoryToken(Riders),
+          useValue: sinon.createStubInstance(Repository),
+        },
+        {
+          provide: getRepositoryToken(Fees),
+          useValue: sinon.createStubInstance(Repository),
+        },
+      ],
     }).compile();
 
     service = module.get<LoadDataService>(LoadDataService);

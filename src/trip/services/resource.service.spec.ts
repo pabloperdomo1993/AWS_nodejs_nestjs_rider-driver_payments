@@ -7,8 +7,8 @@ describe('TripService', () => {
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [ResourceService],
-      imports: [ConfigService],
+      providers: [ResourceService, ConfigService],
+      imports: [],
     }).compile();
 
     service = module.get<ResourceService>(ResourceService);

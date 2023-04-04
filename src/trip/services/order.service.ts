@@ -1,10 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { Repository } from 'typeorm';
-import { CreateTripDto } from '../dto/index';
-import { Trips as Trip, Drivers as Driver } from '../entities/index';
+import { CreateTripDto } from '../dto/create-trip.dto';
+import { Trips as Trip, Drivers as Driver } from '../entities';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UtilsModule } from '../utils/utils';
-import { CalculateDistance } from '../interfaces/index';
+import { CalculateDistance } from '../interfaces/calculateDistance';
 @Injectable()
 export class OrderService {
   constructor(

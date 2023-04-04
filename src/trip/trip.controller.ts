@@ -4,15 +4,15 @@ import {
   StartTripDto,
   FinishTripDto,
   CreatePaymentMethodDto,
-} from './dto/index';
+} from './dto';
 import {
   PaymentMethodService,
   OrderService,
   StartService,
   FinishService,
-} from './services/index';
+  LoadDataService,
+} from './services';
 import { ApiOperation, ApiTags, ApiResponse } from '@nestjs/swagger';
-import { LoadDataService } from './services/init.service';
 @ApiTags('Trip')
 @Controller('trip')
 export class TripController {

@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
-import { StartTripDto } from '../dto/index';
+import { StartTripDto } from '../dto/start-trip.dto';
 import { DateTime } from 'luxon';
-import { Trips as Trip } from '../entities/index';
+import { Trips as Trip } from '../entities/trip.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 

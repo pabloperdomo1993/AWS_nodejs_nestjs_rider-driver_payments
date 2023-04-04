@@ -25,7 +25,6 @@ export class LoadDataService {
       baseValue: 3500
     });
     const fee = await this.feesRepository.save(newFee);
-  
 
     // Create new driver
     const newDriver = this.driversRepository.create({
@@ -35,7 +34,6 @@ export class LoadDataService {
       fee: fee
     });
     newDriver.fee = newFee;
-    
     this.driversRepository.save(newDriver);
 
     // Create new rider

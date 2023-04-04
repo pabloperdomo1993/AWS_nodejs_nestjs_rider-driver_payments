@@ -1,12 +1,12 @@
 import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
-import { FinishTripDto } from '../dto/index';
+import { FinishTripDto } from '../dto';
 import { DateTime } from 'luxon';
-import { Trips as Trip, Fees as Fee, Riders as Rider } from '../entities/index';
+import { Trips as Trip, Fees as Fee, Riders as Rider } from '../entities';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { AxiosResponse, AxiosRequestConfig } from 'axios';
 import { UtilsModule } from '../utils/utils';
-import { CalculateTime, CalculateDistance } from '../interfaces/index';
+import { CalculateTime, CalculateDistance } from '../interfaces';
 import { lastValueFrom } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { HttpService } from '@nestjs/axios';
