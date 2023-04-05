@@ -16,5 +16,8 @@ describe('TripService', () => {
 
   it('should be defined', () => {
     expect(service).toBeDefined();
+    const response = jest.spyOn(service, 'getEnviroments');
+    service.getEnviroments();
+    expect(response).toHaveBeenCalled();
   });
 });

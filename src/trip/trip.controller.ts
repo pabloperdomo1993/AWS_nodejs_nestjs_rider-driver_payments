@@ -54,5 +54,4 @@ export class TripController {
   async finishTrip(@Body() data: FinishTripDto): Promise<any> {
     return this.finishService.endTrip(data);
   }
-
 }

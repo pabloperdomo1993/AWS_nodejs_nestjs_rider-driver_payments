@@ -5,6 +5,9 @@ import { getRepositoryToken } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import * as sinon from 'sinon';
 
+const mockTripsUpdate = {
+  value: 1,
+};
 describe('TripService', () => {
   let service: StartService;
 
@@ -14,7 +17,9 @@ describe('TripService', () => {
         StartService,
         {
           provide: getRepositoryToken(Trips),
-          useValue: sinon.createStubInstance(Repository),
+          useValue: {
+            update: jest.fn().mockReturnValue(mockTripsUpdate),
+          },
         },
       ],
     }).compile();
@@ -22,7 +27,13 @@ describe('TripService', () => {
     service = module.get<StartService>(StartService);
   });
 
-  it('should be defined', () => {
+  it('should be defined', async () => {
     expect(service).toBeDefined();
+    const response = jest.spyOn(service, 'startTrip');
+    const data = {
+      idTrip: 2,
+    };
+    await service.startTrip(data);
+    expect(response).toHaveBeenCalled();
   });
 });

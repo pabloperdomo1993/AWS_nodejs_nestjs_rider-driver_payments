@@ -2,27 +2,45 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { PaymentMethodService } from './paymentMethod.service';
 import { Riders } from '../entities';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import * as sinon from 'sinon';
-import { LoadDataService } from './init.service';
 import { ResourceService } from './resource.service';
-import { HttpService } from '@nestjs/axios';
-
-const httpService = {
-  post: () => {
-    return {};
-  },
-  get: () => {
-    return {};
-  },
-};
+import { ApiService } from './api.service';
 
 const resourceService = {
   getEnviroments: () => {
-    return {};
+    const API_URL = 'this.configService.get<string>(config.api.API_URL)';
+    const PRV_TEST = 'this.configService.get<string>(config.api.PRV_TEST)';
+    const PUB_TEST = 'this.configService.get<string>(config.api.PUB_TEST)';
+    return {
+      API_URL,
+      PRV_TEST,
+      PUB_TEST,
+    };
   },
 };
 
+const apiService = {
+  postApi: () => {
+    return {
+      data: {
+        id: 1,
+      },
+    };
+  },
+  getApi: () => {
+    return {
+      data: {
+        presigned_acceptance: {
+          acceptance_token: 'qweqwewas',
+        },
+      },
+    };
+  },
+};
+
+const mockRidersUpdate = {};
+const mockRidersFind = {
+  mail: 'juanito@gmail.com',
+};
 describe('TripService', () => {
   let service: PaymentMethodService;
 
@@ -32,11 +50,14 @@ describe('TripService', () => {
         PaymentMethodService,
         {
           provide: getRepositoryToken(Riders),
-          useValue: sinon.createStubInstance(Repository),
+          useValue: {
+            findOneBy: jest.fn().mockReturnValue(mockRidersFind),
+            update: jest.fn().mockReturnValue(mockRidersUpdate),
+          },
         },
         {
-          provide: HttpService,
-          useValue: httpService,
+          provide: ApiService,
+          useValue: apiService,
         },
         {
           provide: ResourceService,
@@ -47,7 +68,22 @@ describe('TripService', () => {
     service = module.get<PaymentMethodService>(PaymentMethodService);
   });
 
-  it('should be defined', () => {
+  it('should be defined', async () => {
     expect(service).toBeDefined();
+    const response = jest.spyOn(service, 'createPaymentMethod');
+    const spyPaymentSource = jest.spyOn(service, 'paymentSource');
+    const spyGetTokeCard = jest.spyOn(service, 'getTokenCard');
+    const spyGetMerchants = jest.spyOn(service, 'getmerchants');
+    const data = {
+      longitudeEnd: '-76.544957',
+      latitudeEnd: '2.510319',
+      idRider: 3,
+      typePayment: 'CARD',
+    };
+    await service.createPaymentMethod(data);
+    expect(response).toHaveBeenCalled();
+    expect(spyPaymentSource).toHaveBeenCalled();
+    expect(spyGetTokeCard).toHaveBeenCalled();
+    expect(spyGetMerchants).toHaveBeenCalled();
   });
 });

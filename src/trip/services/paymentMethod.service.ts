@@ -27,7 +27,7 @@ export class PaymentMethodService {
         tokenCard: tokenCard,
         riderMail: rider.mail,
         typePayment: data.typePayment,
-      }
+      };
       const paymentSourceId = await this.paymentSource(sourcePay);
 
       const obj = {
