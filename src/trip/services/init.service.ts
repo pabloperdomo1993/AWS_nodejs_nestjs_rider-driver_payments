@@ -15,31 +15,31 @@ export class LoadDataService {
     private ridersRepository: Repository<Riders>,
     @InjectRepository(Fees)
     private feesRepository: Repository<Fees>
-  ) { }
+  ) {}
 
   async createData() {
     // Create new fee
     const newFee = this.feesRepository.create({
       rateKm: 1200,
       rateTime: 100,
-      baseValue: 3500
+      baseValue: 3500,
     });
     const fee = await this.feesRepository.save(newFee);
 
     // Create new driver
     const newDriver = this.driversRepository.create({
-      longitude: "1",
-      latitude: "1",
-      name: "carlos",
-      fee: fee
+      longitude: '1',
+      latitude: '1',
+      name: 'carlos',
+      fee: fee,
     });
     newDriver.fee = newFee;
     this.driversRepository.save(newDriver);
 
     // Create new rider
     const newRider = this.ridersRepository.create({
-      mail: "eduardo@example.com"
-    })
+      mail: 'eduardo@example.com',
+    });
     this.ridersRepository.save(newRider);
   }
 }

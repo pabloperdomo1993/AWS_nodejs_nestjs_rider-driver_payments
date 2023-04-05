@@ -7,6 +7,7 @@ import {
   FinishService,
   ResourceService,
   LoadDataService,
+  ApiService,
 } from './services/index';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Trips, Fees, Drivers, Riders } from './entities/index';
@@ -25,6 +26,7 @@ import { HttpModule } from '@nestjs/axios';
     FinishService,
     ResourceService,
     LoadDataService,
+    ApiService,
   ],
 })
 export class TripModule {}

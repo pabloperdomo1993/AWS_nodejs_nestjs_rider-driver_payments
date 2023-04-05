@@ -1,17 +1,19 @@
-import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { FinishTripDto } from '../dto';
 import { DateTime } from 'luxon';
 import { Trips as Trip, Fees as Fee, Riders as Rider } from '../entities';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { AxiosResponse, AxiosRequestConfig } from 'axios';
 import { UtilsModule } from '../utils/utils';
-import { CalculateTime, CalculateDistance } from '../interfaces';
-import { lastValueFrom } from 'rxjs';
-import { map } from 'rxjs/operators';
-import { HttpService } from '@nestjs/axios';
+import {
+  CalculateTime,
+  CalculateDistance,
+  CalculatePay,
+  TransactionPay,
+} from '../interfaces';
 import { v4 as uuidv4 } from 'uuid';
 import { ResourceService } from './resource.service';
+import { ApiService } from './api.service';
 @Injectable()
 export class FinishService {
   constructor(
@@ -21,8 +23,8 @@ export class FinishService {
     private readonly feeRepository: Repository<Fee>,
     @InjectRepository(Rider)
     private readonly riderRepository: Repository<Rider>,
-    private readonly httpService: HttpService,
     private readonly resourceService: ResourceService,
+    private readonly apiService: ApiService,
   ) {}
 
   async endTrip(data: FinishTripDto): Promise<any> {
@@ -32,12 +34,11 @@ export class FinishService {
       latitudeEnd: data.latitudeEnd,
       endDate: DateTime.local().toISO(),
     };
-    const trip = await this.tripsRepository.update(id, obj);
-
-    if (trip) {
+    try {
+      await this.tripsRepository.update(id, obj);
       const model = await this.tripsRepository.findOneBy({ id: data.idTrip });
 
-      const dataPayCalculate = {
+      const dataPayCalculate: CalculatePay = {
         startDate: model.startDate,
         endDate: model.endDate,
         idDriver: model.rider,
@@ -46,60 +47,46 @@ export class FinishService {
         latitudeInit: model.latitudeInit,
         latitudeEnd: model.latitudeEnd,
       };
-      const rider = await this.getRiver(model.rider);
+
+      const rider = await this.riderRepository.findOneBy(model.rider);
       const valuePay = await this.getValueToPay(dataPayCalculate);
 
-      try {
-        await this.payTransaction(valuePay, rider, data.numberInstallments);
-      } catch (error) {
-        const messageError = error.response.data.error.messages.reference
-          ? error.response.data.error.messages.reference[0]
-          : null;
-        const message =
-          messageError ??
-          error.response.data.error.messages.valid_amount_in_cents[0];
-        throw new HttpException(message, HttpStatus.BAD_REQUEST);
-      }
-
+      const dataPayTransaction: TransactionPay = {
+        valuePay: valuePay,
+        rider: rider,
+        numberInstallments: data.numberInstallments,
+      };
+      await this.payTransaction(dataPayTransaction);
       return {
-        message: `Trip paid successfully by value ${valuePay}.`
-      }
-    } else {
-      throw new HttpException('Trip not exist.', HttpStatus.BAD_REQUEST);
+        message: `Trip paid successfully by value ${valuePay}.`,
+      };
+    } catch (error) {
+      return {
+        message: 'Error',
+        error: error,
+      };
     }
   }
 
-  async payTransaction(valuePay, rider, numberInstallments) {
-    const { API_URL, PRV_TEST } = this.resourceService.getEnviroments();
+  async payTransaction(dataPayTransaction: TransactionPay) {
+    const { PRV_TEST } = this.resourceService.getEnviroments();
     const { CURRENCY } = this.getCurrency();
     const body = {
-      amount_in_cents: valuePay * 100,
+      amount_in_cents: dataPayTransaction.valuePay * 100,
       currency: CURRENCY,
-      customer_email: rider.mail,
+      customer_email: dataPayTransaction.rider.mail,
       payment_method: {
-        installments: numberInstallments,
+        installments: dataPayTransaction.numberInstallments,
       },
       reference: uuidv4(),
-      payment_source_id: rider.paymentMethod,
+      payment_source_id: dataPayTransaction.rider.paymentMethod,
     };
-
-    const headers: AxiosRequestConfig['headers'] = {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${PRV_TEST}`,
-    };
-
-    const data = this.httpService
-      .post(`${API_URL}/transactions`, body, { headers })
-      .pipe(
-        map((response: AxiosResponse<any>) => {
-          return response.data;
-        }),
-      );
-    const response = await lastValueFrom(data);
+    const url = 'transactions';
+    const response = await this.apiService.postApi(body, url, PRV_TEST);
     return response;
   }
 
-  async getValueToPay(dataPayCalculate) {
+  async getValueToPay(dataPayCalculate: CalculatePay) {
     const idDriver = dataPayCalculate.idDriver;
     const data: CalculateTime = {
       initDate: dataPayCalculate.startDate,
@@ -120,13 +107,9 @@ export class FinishService {
     return Math.round(valueToPay);
   }
 
-  async getRiver(id) {
-    return this.riderRepository.findOneBy(id);
-  }
-
   getCurrency() {
     return {
-      CURRENCY: 'COP'
-    }
+      CURRENCY: 'COP',
+    };
   }
 }
